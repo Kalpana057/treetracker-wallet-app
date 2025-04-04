@@ -1,19 +1,26 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-
 import {
   Email as EmailIcon,
   Facebook as FacebookIcon,
   GitHub as GitHubIcon,
+  Visibility,
+  VisibilityOff,
 } from "@mui/icons-material";
 
-import Link from "@mui/material/Link";
+import {
+  Box,
+  Typography,
+  IconButton,
+  InputAdornment,
+  Link as MuiLink,
+} from "@mui/material";
+
 import NextLink from "next/link";
 import Wrapper from "@/components/common/Wrapper";
 import CustomHeadingTitle from "@/components/common/CustomHeadingTitle";
 import CustomTextField from "@/components/common/CustomTextFieldProps";
-import { Box, Typography } from "@mui/material";
 import CustomSubmitButton from "@/components/common/CustomSubmitButton";
 import SocialButtons from "@/components/common/SocialButtons";
 import TermsSection from "@/components/common/TermsSection";
@@ -28,28 +35,24 @@ export default function SignUp() {
     confirmPassword: "",
   });
 
-  const [showPassword, setShowPassword] = useState(false); // State for password visibility
-  const [isButtonDisabled, setIsButtonDisabled] = useState(true); // State for the state of the button
-  const [emailError, setEmailError] = useState(""); // E-mail error state
-  const [passwordError, setPasswordError] = useState(""); // Password error state
+  const [showPassword, setShowPassword] = useState(false);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
-  // Email format validation
   const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Basic email validation regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  // Password validation (at least 8 characters)
   const validatePassword = (password: string) => {
-    return password.length >= 8; // At least 8 characters
+    return password.length >= 8;
   };
 
-  // Show/hide password operation
   const handleClickShowPassword = () => {
-    setShowPassword(!showPassword);
+    setShowPassword(prev => !prev);
   };
 
-  // Function to handle form changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -57,35 +60,31 @@ export default function SignUp() {
     });
   };
 
-  // The process of submitting the form
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Password verification
+
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
-    // Sending to backend will come here (API integration)
+
     console.log("Form Data:", formData);
+    // API call here
   };
 
-  // Validate email and password on each form data change
   useEffect(() => {
-    // Email validation
     if (formData.email && !validateEmail(formData.email)) {
       setEmailError("Error: Email is incorrect");
     } else {
       setEmailError("");
     }
 
-    // Password validation
     if (formData.password && !validatePassword(formData.password)) {
       setPasswordError("Minimum length 8 characters");
     } else {
       setPasswordError("");
     }
 
-    // Button activation logic
     const isFormValid =
       formData.name !== "" &&
       emailError === "" &&
@@ -94,7 +93,7 @@ export default function SignUp() {
       formData.confirmPassword !== "" &&
       formData.password === formData.confirmPassword;
 
-    setIsButtonDisabled(!isFormValid); // If the form is not valid the button becomes disabled
+    setIsButtonDisabled(!isFormValid);
   }, [formData, emailError, passwordError]);
 
   return (
@@ -117,22 +116,44 @@ export default function SignUp() {
             handleChange={handleChange}
             type="email"
             required
+            error={!!emailError}
+            helperText={emailError}
           />
           <CustomTextField
             label="Password"
             name="password"
             value={formData.password}
             handleChange={handleChange}
-            type="password"
+            type={showPassword ? "text" : "password"}
             required
+            error={!!passwordError}
+            helperText={passwordError}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={handleClickShowPassword} edge="end">
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
           <CustomTextField
             label="Confirm password"
-            name="confirmpassword"
-            type="password"
+            name="confirmPassword"
             value={formData.confirmPassword}
             handleChange={handleChange}
+            type={showPassword ? "text" : "password"}
             required
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={handleClickShowPassword} edge="end">
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
           <CustomSubmitButton text="Sign Up" isDisabled={isButtonDisabled} />
         </form>
@@ -171,9 +192,9 @@ export default function SignUp() {
           />
           <Box sx={{ display: "flex", gap: "0.3rem" }}>
             <Typography>Have an Account?</Typography>
-            <Link href="/login" component={NextLink}>
+            <MuiLink href="/login" component={NextLink}>
               Log in
-            </Link>
+            </MuiLink>
           </Box>
           <TermsSection />
         </Box>

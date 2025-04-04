@@ -25,9 +25,8 @@ export default function Login() {
     password: "",
   });
 
-  const [isButtonDisabled, setIsButtonDisabled] = useState(true); // State for the state of the button
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
-  // Function to handle form changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -35,20 +34,16 @@ export default function Login() {
     });
   };
 
-  // The process of submitting the form
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Sending to backend will come here (API integration)
     console.log("Form Data:", formData);
   };
 
-  // Validate email and password on each form data change
   useEffect(() => {
-    // Button activation logic
-    const isFormValid: boolean = formData.password !== ""; // TypeScript is instructed that this is a boolean
-
-    setIsButtonDisabled(!isFormValid); // If the form is not valid the button becomes disabled
+    const isFormValid: boolean = formData.password !== "";
+    setIsButtonDisabled(!isFormValid);
   }, [formData]);
+
   return (
     <Wrapper>
       <CenteredColumnBox>
@@ -74,6 +69,20 @@ export default function Login() {
           <CustomSubmitButton text="Log In" isDisabled={isButtonDisabled} />
         </form>
 
+        {/* Forgot password link */}
+        <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
+          <Typography variant="body2" sx={{ textAlign: "center" }}>
+            Forgot password?{" "}
+            <Link
+              href="/forgotPassword"
+              component={NextLink}
+              sx={{ color: "#61892F", fontWeight: "bold" }}>
+              Reset
+            </Link>
+          </Typography>
+        </Box>
+
+        {/* Divider */}
         <Box
           sx={{
             my: 3,
@@ -84,6 +93,7 @@ export default function Login() {
           <Typography variant="body2">Or</Typography>
         </Box>
 
+        {/* Social Buttons */}
         <Box
           sx={{
             width: "100%",
@@ -106,12 +116,15 @@ export default function Login() {
             type="submit"
             icon={<GitHubIcon />}
           />
+
+          {/* Signup link */}
           <Box sx={{ display: "flex", gap: "0.3rem" }}>
             <Typography>Not have an Account?</Typography>
             <Link href="/signup" component={NextLink}>
               SignUp
             </Link>
           </Box>
+
           <TermsSection />
         </Box>
       </CenteredColumnBox>
