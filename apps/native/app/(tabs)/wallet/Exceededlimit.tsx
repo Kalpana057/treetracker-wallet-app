@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import ToggledInfo from "./ToggledInfo";
+import ToggledInfo from "./Toggledinfo";
 
 const WalletScreen: React.FC = () => {
   const [showInfo, setShowInfo] = useState(false);
