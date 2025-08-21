@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import ToggledInfo from "./Toggledinfo";
+import ToggleInfo from "./ToggleInfo";
 
 const WalletScreen: React.FC = () => {
   const [showInfo, setShowInfo] = useState(false);
@@ -71,7 +71,7 @@ const WalletScreen: React.FC = () => {
       </ScrollView>
 
       {/* Info Footer */}
-      <ToggledInfo visible={showInfo} />
+      <ToggleInfo visible={showInfo} />
     </SafeAreaView>
   );
 };
