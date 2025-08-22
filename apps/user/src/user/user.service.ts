@@ -3,23 +3,35 @@ import { RegisterUserDto } from "@dtos/register-user.dto";
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom } from "rxjs";
 import { HttpStatusCode } from "axios";
+import { AuthService } from "../auth/auth.service";
 
 @Injectable()
 export class UserService {
   // private readonly logger = new Logger(UserService.name);
 
-  constructor(private readonly httpService: HttpService) {}
+  constructor(
+    private readonly httpService: HttpService,
+    private authService: AuthService,
+  ) {}
 
-  public async getToken() {
+  public async loginUser(loginUserDto) {
+    if (!loginUserDto.username || !loginUserDto.password) {
+      throw new HttpException("Missing credentials", HttpStatus.BAD_REQUEST);
+    }
+
     const keycloakBaseUrl = process.env.PRIVATE_KEYCLOAK_BASE_URL;
     const keycloakRealm = process.env.PRIVATE_KEYCLOAK_REALM;
-    const tokenApi = `${keycloakBaseUrl}/realms/${keycloakRealm}/protocol/openid-connect/token`;
+    const tokenUrl = `${keycloakBaseUrl}/realms/${keycloakRealm}/protocol/openid-connect/token`;
 
     const body = new URLSearchParams({
-      client_id: process.env.PRIVATE_KEYCLOAK_CLIENT_ID,
-      client_secret: process.env.PRIVATE_KEYCLOAK_CLIENT_SECRET,
-      grant_type: "client_credentials",
+      grant_type: "password",
+      client_id: process.env.PRIVATE_KEYCLOAK_CLIENT_ID!,
+      ...loginUserDto,
     });
+
+    if (process.env.PRIVATE_KEYCLOAK_CLIENT_SECRET) {
+      body.append("client_secret", process.env.PRIVATE_KEYCLOAK_CLIENT_SECRET);
+    }
 
     const headers = {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -27,19 +39,33 @@ export class UserService {
 
     try {
       const response = await firstValueFrom(
-        this.httpService.post(tokenApi, body, { headers }),
+        this.httpService.post(tokenUrl, body.toString(), { headers }),
       );
 
-      return response?.data?.access_token;
-    } catch (e) {
+      const { access_token } = response.data;
+
+      if (!access_token) {
+        throw new HttpException(
+          "No access token returned",
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+      return { access_token };
+    } catch (error: any) {
+      const status = error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR;
+      const message =
+        error.response?.data?.error_description ||
+        error.response?.data?.error ||
+        error.message ||
+        "Login failed";
+
       Logger.error(
-        `logger: keycloak service account auth returned with ${e.response.status}, ${e.response.data.error_description}, `,
+        `User login failed (HTTP ${status}): ${message}`,
+        undefined,
+        UserService.name,
       );
 
-      throw new HttpException(
-        `Service account failed to authenticate`,
-        e.response.status,
-      );
+      throw new HttpException(message, status);
     }
   }
 
@@ -48,7 +74,7 @@ export class UserService {
     const keycloakRealm = process.env.PRIVATE_KEYCLOAK_REALM;
     try {
       // Get the access token
-      const tokenData = await this.getToken();
+      const tokenData = await this.authService.getToken();
 
       // API for creating the user
       const createUserApiUrl = `${keycloakBaseUrl}/admin/realms/${keycloakRealm}/users`;

@@ -15,6 +15,7 @@ describe("UserController", () => {
           provide: UserService,
           useValue: {
             createUser: jest.fn(),
+            loginUser: jest.fn(),
           },
         },
       ],
@@ -41,6 +42,28 @@ describe("UserController", () => {
 
       expect(userService.createUser).toHaveBeenCalledWith(registerUserDto);
       expect(response).toEqual(result);
+    });
+  });
+
+  describe("login", () => {
+    it("should call UserService.loginUser with correct credentials", async () => {
+      const credentials = {
+        username: "testuser",
+        password: "password123",
+      };
+      const accessToken = "mocked-access-token";
+
+      jest
+        .spyOn(userService, "loginUser")
+        .mockResolvedValue({ access_token: accessToken });
+
+      const result = await userController.loginUser(credentials);
+
+      expect(userService.loginUser).toHaveBeenCalledWith({
+        username: credentials.username,
+        password: credentials.password,
+      });
+      expect(result).toEqual({ access_token: accessToken });
     });
   });
 });

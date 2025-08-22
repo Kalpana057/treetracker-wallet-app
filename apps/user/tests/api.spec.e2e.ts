@@ -1,8 +1,6 @@
-// test/cats.e2e-spec.ts
-
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
-import * as request from "supertest";
+import supertest from "supertest";
 import { AppModule } from "../src/app.module";
 
 describe("UserController (e2e)", () => {
@@ -32,7 +30,7 @@ describe("UserController (e2e)", () => {
       };
     }
     const newUser = generateUniqueUserData();
-    return request(app.getHttpServer())
+    return supertest(app.getHttpServer())
       .post("/register")
       .send(newUser)
       .expect(201)
@@ -51,10 +49,45 @@ describe("UserController (e2e)", () => {
       };
     }
     const newUser = generateUniqueUserData();
-    return request(app.getHttpServer())
+    return supertest(app.getHttpServer())
       .post("/register")
       .send(newUser)
       .expect(201)
       .expect({ success: true, message: "User created successfully!" });
+  });
+
+  it("should return 200 and a token when user logs in successfully", async () => {
+    const timestamp = Date.now();
+    const newUser = {
+      username: `testuser_${timestamp}`,
+      email: `testuser_${timestamp}@wallet-app-test.com`,
+      password: "SecurePassword123!",
+      firstName: "First",
+      lastName: "Last",
+    };
+
+    // 1. Register user
+    await supertest(app.getHttpServer())
+      .post("/register")
+      .send(newUser)
+      .expect(201)
+      .expect({ success: true, message: "User created successfully!" });
+
+    // 2. Login with same credentials
+    // Now login with same credentials
+    const loginDto = {
+      username: newUser.username,
+      password: newUser.password,
+    };
+
+    const response = await supertest(app.getHttpServer())
+      .post("/login")
+      .send(loginDto)
+      .expect(200);
+
+    expect(response.body).toBeDefined();
+    expect(response.body).toHaveProperty("access_token");
+    expect(typeof response.body.access_token).toBe("string");
+    expect(response.body.access_token.length).toBeGreaterThan(100);
   });
 });
